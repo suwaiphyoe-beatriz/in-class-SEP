@@ -14,7 +14,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git 'git 'https://github.com/suwaiphyoe-beatriz/in-class-SEP.git''
+                git 'https://github.com/suwaiphyoe-beatriz/in-class-SEP.git'
             }
         }
 
