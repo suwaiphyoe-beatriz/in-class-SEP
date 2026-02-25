@@ -14,7 +14,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/suwaiphyoe-beatriz/SpeedConverter.git'
+                git 'git 'https://github.com/suwaiphyoe-beatriz/in-class-SEP.git''
             }
         }
 
