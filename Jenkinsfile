@@ -2,29 +2,24 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'
-    }
-
-    environment {
-        DOCKERHUB_REPO = 'suph03/in-class-sep'
-        DOCKER_IMAGE_TAG = 'latest'
+        maven 'Maven'
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Build') {
             steps {
-                git 'https://github.com/suwaiphyoe-beatriz/in-class-SEP.git'
+                sh 'mvn clean install'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'mvn clean test'
+                sh 'mvn test'
             }
         }
 
-        stage('Code Coverage') {
+        stage('Generate JaCoCo Report') {
             steps {
                 sh 'mvn jacoco:report'
             }
@@ -38,14 +33,29 @@ pipeline {
 
         stage('Publish Coverage Report') {
             steps {
-                jacoco()
+                jacoco(
+                    execPattern: '**/target/jacoco.exec',
+                    classPattern: '**/target/classes',
+                    sourcePattern: '**/src/main/java'
+                )
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}")
+                    sh 'docker build -t suph03/speedconverter:latest .'
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push suph03/speedconverter:latest
+                    '''
                 }
             }
         }
