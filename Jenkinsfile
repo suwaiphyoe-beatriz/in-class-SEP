@@ -2,7 +2,11 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'
+        maven 'Maven 3'  
+    }
+
+    environment {
+        DOCKER_IMAGE = 'suph03/speedconverter:latest'
     }
 
     stages {
@@ -27,7 +31,7 @@ pipeline {
 
         stage('Publish Test Results') {
             steps {
-                junit '**/target/surefire-reports/*.xml'
+                junit 'target/surefire-reports/*.xml'
             }
         }
 
@@ -43,19 +47,19 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build -t suph03/speedconverter:latest .'
-                }
+                sh '/usr/local/bin/docker build -t suph03/speedconverter:latest .'
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker push suph03/speedconverter:latest
-                    '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'docker-hub',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '/usr/local/bin/docker login -u $DOCKER_USER -p $DOCKER_PASS'
+                    sh '/usr/local/bin/docker push suph03/speedconverter:latest'
                 }
             }
         }
