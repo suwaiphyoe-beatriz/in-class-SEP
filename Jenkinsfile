@@ -2,36 +2,29 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'  // Make sure this matches your Jenkins Maven installation name
+        maven 'Maven3'
     }
 
     environment {
-        PATH = "/usr/local/bin:${env.PATH}"  // Add Docker to PATH
-        DOCKERHUB_CREDENTIALS_ID = 'docker-hub' // Jenkins DockerHub credentials
-        DOCKERHUB_REPO = 'suph03/speedconverter'
+        DOCKERHUB_REPO = 'suph03/in-class-sep'
         DOCKER_IMAGE_TAG = 'latest'
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/suwaiphyoe-beatriz/in-class-SEP.git', branch: 'main', credentialsId: 'github-pat'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'mvn clean install'
+                git 'https://github.com/suwaiphyoe-beatriz/in-class-SEP.git'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'mvn test'
+                sh 'mvn clean test'
             }
         }
 
-        stage('Generate JaCoCo Report') {
+        stage('Code Coverage') {
             steps {
                 sh 'mvn jacoco:report'
             }
@@ -53,16 +46,6 @@ pipeline {
             steps {
                 script {
                     docker.build("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}")
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS_ID) {
-                        docker.image("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}").push()
-                    }
                 }
             }
         }
